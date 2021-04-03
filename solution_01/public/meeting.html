@@ -1,0 +1,87 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>jQuery Weely Scheduler Examples</title>
+  <link href="https://www.jqueryscript.net/css/jquerysctipttop.css" rel="stylesheet" type="text/css">
+  <link href="scheduler.css" rel="stylesheet" />
+  <style>
+    body { background: #fafafa; font-family: 'Open Sans'; }
+    .main {
+      max-width: 800px;
+      margin: 150px auto;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="main">
+    <div class="wrapper">
+      <table id="test1"></table>
+      <br>
+      <input type="text" id="name" placeholder="your name">
+      <input type="button" value="send" id="send">
+    </div>
+    
+
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>
+    <script src="scheduler.js"></script>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const ID = urlParams.get('ID');
+
+      $.getJSON(`./api/meeting/${ID}`, data => {
+          init(data.dates)
+      })
+
+      let selection = {}
+      function init(dates) {
+        $.fn.scheduler.locales['en'] = {
+          AM: 'AM',
+          PM: 'PM',
+          TIME_TITLE: 'time',
+          WEEK_TITLE: 'dates',
+          WEEK_DAYS: dates,
+          DRAG_TIP: '',
+          RESET: 'reset'
+        };
+        $('#test1').scheduler({
+          accuracy: 2,
+          onSelect: (x) => (selection = x) && console.log(selection),
+        });
+      }
+
+      $('#send').on('click', e=>{
+        e.preventDefault();
+        let name = $('#name').val();
+        if (!name || !name.length) {
+          $('#name').css({'background': 'red'});
+          return;
+        }
+
+        $.ajax({
+          url : './api/meeting/' + ID,
+          type: 'POST',
+          contentType: 'application/json',
+          dataType: 'json',
+          data : JSON.stringify({ name, selection })
+        }).done(function(response) {
+          console.log(response);
+          if ('success' in response) {
+            $('.wrapper').html('success!')
+          }
+        }).fail(function(response) {
+          console.error(response.status, response.statusText)
+        });
+      });
+
+    </script>
+  </div>
+
+</body>
+
+</html>

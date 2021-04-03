@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>jQuery Weely Scheduler Examples</title>
+  <link href="https://www.jqueryscript.net/css/jquerysctipttop.css" rel="stylesheet" type="text/css">
+  <link href="scheduler.css" rel="stylesheet" />
+  <style>
+    body { background: #fafafa; font-family: 'Open Sans'; }
+    .main {
+      max-width: 800px;
+      margin: 150px auto;
+    }
+    tfoot {display:none;}
+  </style>
+</head>
+
+<body>
+
+  <div class="main">
+    <div class="wrapper">
+      <table id="test1"></table>
+      <br>
+      <div id="names">
+        <strong>Answers from:</strong>
+      </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>
+    <script src="scheduler.js"></script>
+    <script>
+      const urlParams = new URLSearchParams(window.location.search);
+      const ID = urlParams.get('ID');
+
+      $.getJSON(`./api/meeting/results/${ID}`, data => {
+          init(data.data)
+      })
+
+      function init(data) {
+        console.log(data)
+        $.fn.scheduler.locales['en'] = {
+          AM: 'AM',
+          PM: 'PM',
+          TIME_TITLE: 'time',
+          WEEK_TITLE: 'dates',
+          WEEK_DAYS: data.dates,
+          DRAG_TIP: '',
+          RESET: ''
+        };
+
+        let selected = {};
+        const names = data.answers.map(x => x.name)
+        $('#names').append(names.join(', '))
+        for (const answer of data.answers) {
+          for (const sel in answer.selection) {
+             const keys = answer.selection[sel].map(x => sel+'-'+x);
+             for (const key of keys) {
+              selected[key] = selected[key]+1 || 1;
+             }
+          }
+        }
+
+        // only show overlapped regions
+        selected = Object.fromEntries(Object.entries(selected).filter(([x,y]) => y===names.length))
+        const selected2 = {}
+        for (const key in selected) {
+          const arr = key.split('-').map(x => parseInt(x));
+          if (!selected2[arr[0]])
+            selected2[arr[0]] = [];
+          selected2[arr[0]].push(arr[1])
+        }
+        if (! Object.keys(selected2).length) {
+          $('#names').append('<br><span style="color:red;">No overlap possible!</span>')
+        }
+        $('#test1').scheduler({
+          accuracy: 2,
+          disabled: true,
+          data: selected2,
+        });
+      }
+
+    </script>
+  </div>
+
+</body>
+
+</html>
