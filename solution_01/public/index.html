@@ -6,6 +6,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <title>jQuery Weely Scheduler Examples</title>
   <link href="datepicker.css" rel="stylesheet" />
+  <style>
+    .main {
+      margin: 50px auto;
+      display: table;
+    }
+    .table-condensed {
+      border: 1px solid black;
+    }
+    div.date {
+      margin: 6px 0px;
+    }
+    .datepicker {
+      padding:0;
+    }
+  </style>
 </head>
 
 <body>
@@ -14,7 +29,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/js/bootstrap-datepicker.js"></script>
 
-    <input type="text" class="date" placeholder="Pick the multiple dates">
+    <input type="text" class="date" placeholder="Pick your dates">
+    <div class="date" data-date=""></div>
     <input type="button" value="send" id="send">
     <br><a href="" id="link_result"></a>
     <br><a href="" id="link_user"></a>
@@ -22,8 +38,14 @@
 
       $('.date').datepicker({
         multidate: true,
-        format: 'yyyy-mm-dd'
+        format: 'yyyy-mm-dd',
+        
       });
+      $('div.date').on('changeDate', function() {
+        $('input.date').val(
+            $('div.date').datepicker('getFormattedDate')
+        );
+    });
 
       $('#send').on('click', e=>{
         e.preventDefault();

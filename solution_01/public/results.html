@@ -23,8 +23,8 @@
     <div class="wrapper">
       <table id="test1"></table>
       <br>
-      <div id="names">
-        <strong>Answers from:</strong>
+      <div id="notes">
+        <p id="available"></p>
       </div>
     </div>
 
@@ -58,7 +58,7 @@
         // translate date format into row/column format
         let selected = {};
         const names = data.answers.map(x => x.name)
-        $('#names').append(names.join(', '))
+        $('#available').html('<strong>Users: </strong>' + names.join(', '))
         for (const answer of data.answers) {
           for (const sel of answer.selection) {
             let dt = luxon.DateTime.fromISO(sel); // relative to user's timezone
@@ -88,16 +88,16 @@
         }
 
         if (! Object.keys(selected2).length) {
-          $('#names').append('<br><span style="color:red;">No overlap possible!</span>')
+          $('#notes').append('<p style="color:red;">No overlap possible!</p>')
         }
-        
+
         $('#test1').scheduler({
           accuracy: accuracy,
           disabled: true,
           data: selected2,
         });
 
-        $('#names').append('<br><strong>Timezone:</strong> '+luxon.DateTime.local().zoneName);
+        $('#notes').append('<p><strong>Timezone:</strong> '+luxon.DateTime.local().zoneName + '</p>');
       }
 
     </script>

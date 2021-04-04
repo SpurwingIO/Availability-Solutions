@@ -40,20 +40,23 @@ router.post('/api/meeting/', (req, res) => {
 });
 
 router.get('/api/meeting/:ID', (req, res) => {
-  // console.log(req.params.ID)
   res.send({success:1, dates:STATE[req.params.ID].dates})
 });
 
 router.post('/api/meeting/:ID', (req, res) => {
-  // console.log(req.body)
-  STATE[req.params.ID].answers.push(req.body);
+  // we can use email to allow user to update his answer
+  let item = STATE[req.params.ID].answers.find(x => x.email === req.body.email);
+  if (item) {
+    item.selection = req.body.selection;
+  } else {
+    STATE[req.params.ID].answers.push(req.body);
+  }
   save();
   res.send({success:1})
 });
 
 
 router.get('/api/meeting/results/:ID', (req, res) => {
-  // console.log(req.params.ID)
   res.send({success:1, data:STATE[req.params.ID]})
 });
 

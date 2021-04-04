@@ -23,9 +23,10 @@
     <div class="wrapper">
       <table id="test1"></table>
       <br>
-      <input type="text" id="name" placeholder="your name">
+      <input type="text" id="name" name="name" placeholder="your name">
+      <input type="text" id="email" name="email" placeholder="your email">
       <input type="button" value="send" id="send">
-      <br><span id="names"></span>
+      <div id="notes"></div>
     </div>
     
 
@@ -79,13 +80,18 @@
           $('#name').css({'background': 'red'});
           return;
         }
+        let email = $('#email').val();
+        if (!email || !email.length) {
+          $('#email').css({'background': 'red'});
+          return;
+        }
 
         $.ajax({
           url : './api/meeting/' + ID,
           type: 'POST',
           contentType: 'application/json',
           dataType: 'json',
-          data : JSON.stringify({ name, selection })
+          data : JSON.stringify({ name, email, selection })
         }).done(function(response) {
           console.log(response);
           if ('success' in response) {
@@ -95,7 +101,7 @@
           console.error(response.status, response.statusText)
         });
       });
-      $('#names').append('<br><strong>Timezone:</strong> '+luxon.DateTime.local().zoneName);
+      $('#notes').append('<p><strong>Timezone:</strong> '+luxon.DateTime.local().zoneName + '</p>');
 
     </script>
   </div>
