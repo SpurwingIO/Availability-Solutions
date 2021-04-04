@@ -4,10 +4,9 @@ const app = express();
 const port = 8000;
 
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.enable('strict routing');
 
-app.set('view engine', 'ejs');
-app.use('/', express.static('./public'))
+app.use(express.static('./public'))
 
 const router = express.Router({
     caseSensitive: app.get('case sensitive routing'),
