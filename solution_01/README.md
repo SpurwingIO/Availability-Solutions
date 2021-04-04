@@ -5,6 +5,8 @@ This software is inspired by online tools like Doodle, which allow us to share a
 
 ## Demo
 
+Live demo: [https://nevolin.be/Spurwing/Availability/S01/](https://nevolin.be/Spurwing/Availability/S01/)
+
 Use the homepage's calendar to select a few candidate dates. Upon submitting you will see two links appear, one for the results page and one to share with your team or group for voting.
 
 ![group calendar tool](assets/a.png)
