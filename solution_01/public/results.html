@@ -30,9 +30,14 @@
 
     <script src="https://code.jquery.com/jquery-1.12.4.min.js" integrity="sha384-nvAa0+6Qg9clwYCGGPpDQLVpLNn0fRaROjHqs13t4Ggj3Ez50XnGQqc/r8MhnRDZ" crossorigin="anonymous"></script>
     <script src="scheduler.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/luxon/1.26.0/luxon.min.js" integrity="sha512-cYjGoxnM2sxryDRpKhwi8uTszEw2zufuDVz1dWlm1+wlvwnhQ4wu00BokHH4IKlogGJNL+2a2GYvHN+xaoUxjQ==" crossorigin="anonymous"></script>
     <script>
+      
+      // luxon.Settings.defaultZoneName = 'America/New_York'; // testing purposes
+
       const urlParams = new URLSearchParams(window.location.search);
       const ID = urlParams.get('ID');
+      const accuracy = 2;
 
       $.getJSON(`./api/meeting/results/${ID}`, data => {
           init(data.data)
@@ -50,17 +55,27 @@
           RESET: ''
         };
 
+        // translate date format into row/column format
         let selected = {};
         const names = data.answers.map(x => x.name)
         $('#names').append(names.join(', '))
         for (const answer of data.answers) {
-          for (const sel in answer.selection) {
-             const keys = answer.selection[sel].map(x => sel+'-'+x);
-             for (const key of keys) {
-              selected[key] = selected[key]+1 || 1;
-             }
+          for (const sel of answer.selection) {
+            let dt = luxon.DateTime.fromISO(sel); // relative to user's timezone
+            let test = dt.toFormat('yyyy-MM-dd').toString();
+            let row = data.dates.indexOf(test)
+            if (row >= 0) {
+              let col = (dt.hour + dt.minute / 60)*accuracy;
+              let key = (row+1)+'-'+col;
+              if (!selected[key])
+                selected[key] = 0;
+              selected[key]++;
+            } else {
+              console.log(dt.toUTC().toISO() + ': outside range')
+            }
           }
         }
+        console.log(selected)
 
         // only show overlapped regions
         selected = Object.fromEntries(Object.entries(selected).filter(([x,y]) => y===names.length))
@@ -71,14 +86,18 @@
             selected2[arr[0]] = [];
           selected2[arr[0]].push(arr[1])
         }
+
         if (! Object.keys(selected2).length) {
           $('#names').append('<br><span style="color:red;">No overlap possible!</span>')
         }
+        
         $('#test1').scheduler({
-          accuracy: 2,
+          accuracy: accuracy,
           disabled: true,
           data: selected2,
         });
+
+        $('#names').append('<br><strong>Timezone:</strong> '+luxon.DateTime.local().zoneName);
       }
 
     </script>
