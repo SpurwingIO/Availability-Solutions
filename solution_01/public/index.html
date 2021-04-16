@@ -33,7 +33,7 @@
     <div class="date" data-date=""></div>
     <input type="button" value="create" id="send">
     <br>
-    <a href="" target="_blank" id="link_user"></a> &nbsp; <a href="" target="_blank" id="link_result"></a>
+    <a href="" target="_blank" id="link_user"></a>
      
     <script>
 
@@ -59,11 +59,9 @@
         }).done(function(response) {
             if ('success' in response) {
               console.log(response.ID)
-              $('#link_result').attr('href', `./results.html?ID=${response.ID}`)
-              $('#link_result').text(`results link`)
 
-              $('#link_user').attr('href', `./meeting.html?ID=${response.ID}`)
-              $('#link_user').text(`user link`)
+              $('#link_user').prop('href', `./results.html?ID=${response.ID}`)
+              $('#link_user').text( $('#link_user').prop('href') )
             }
         }).fail(function(response) {
             console.error(response.status, response.statusText)

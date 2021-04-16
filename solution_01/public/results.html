@@ -28,10 +28,23 @@
 <body>
 
   <div class="main">
-    <div class="wrapper">
+    <div class="wrapper1">
+      <h2>Submit:</h2>
       <table id="test1"></table>
       <br>
-      <div id="notes">
+      <input type="text" id="name" name="name" placeholder="your name">
+      <input type="text" id="email" name="email" placeholder="your email">
+      <input type="button" value="submit" id="send">
+      <div id="servernotes"></div>
+    </div>
+
+    <hr style="margin: 50px 0;">
+
+    <div class="wrapper2">
+      <h2>Results:</h2>
+      <div id="test2"></div>
+      <br>
+      <div>
         <div id="available"></div>
         <div id="status"></div>
         <div id="tz"></div>
@@ -49,49 +62,116 @@
       const ID = urlParams.get('ID');
       const accuracy = 2;
 
-      $.getJSON(`./api/meeting/results/${ID}`, data => {
-          showOverlapped(init(data.data))
+
+      ///////// SUBMIT
+      $.getJSON(`./api/meeting/${ID}`, data => {
+          initSubmit(data.dates)
       })
+      // convert row-column format into ISO/UTC date format
+      function convert(sel, dates) {
+        selection = []
+        for (const row_ in sel) {
+          for (const col of sel[row_]) {
+            let row = row_ - 1;
+            let hour = Math.floor(col/accuracy)
+            let minute = ((col / accuracy) - hour)*60;
+            let dt = luxon.DateTime.fromISO(dates[row]).set({hour, minute});
+            selection.push(dt.toUTC().toString())
+          }
+        }
+      }
 
-      function init(data) {
-
-        console.log(data)
+      let selection = []
+      function initSubmit(dates) {
         $.fn.scheduler.locales['en'] = {
           AM: 'AM',
           PM: 'PM',
           TIME_TITLE: 'time',
           WEEK_TITLE: 'dates',
-          WEEK_DAYS: data.dates,
+          WEEK_DAYS: dates,
           DRAG_TIP: '',
-          RESET: ''
+          RESET: 'reset'
         };
+        $('#test1').scheduler({
+          accuracy: accuracy,
+          onSelect: (x) => convert(x, dates),
+        });
+      
 
-        // translate date format into row/column format
-        let selected = {};
-        const names = data.answers.map(x => x.name)
-        $('#available').html('<strong>Users: </strong>' + names.map(i=>`<a href="" class="selUser shown">${i}</a>`).join(' - '))
-        for (const answer of data.answers) {
-          for (const sel of answer.selection) {
-            let dt = luxon.DateTime.fromISO(sel); // relative to user's timezone
-            let test = dt.toFormat('yyyy-MM-dd').toString();
-            let row = data.dates.indexOf(test)
-            if (row >= 0) {
-              let col = (dt.hour + dt.minute / 60)*accuracy;
-              let key = (row+1)+'-'+col;
-              if (!selected[key])
-                selected[key] = {n:0, names: []};
-              selected[key].n++;
-              if(!selected[key].names.includes(answer.name))
-                selected[key].names.push(answer.name);
-            } else {
-              console.log(dt.toUTC().toISO() + ': outside range')
+        $('#send').on('click', e=>{
+          e.preventDefault();
+          let name = $('#name').val();
+          if (!name || !name.length) {
+            $('#name').css({'background': 'red'});
+            return;
+          }
+          let email = $('#email').val();
+          if (!email || !email.length) {
+            $('#email').css({'background': 'red'});
+            return;
+          }
+
+          $.ajax({
+            url : './api/meeting/' + ID,
+            type: 'POST',
+            contentType: 'application/json',
+            dataType: 'json',
+            data : JSON.stringify({ name, email, selection })
+          }).done(function(response) {
+            console.log(response);
+            if ('success' in response) {
+              location.reload();
+            }
+          }).fail(function(response) {
+            console.error(response.status, response.statusText)
+          });
+        });
+        $('#servernotes').append('<p><strong>Timezone:</strong> '+luxon.DateTime.local().zoneName + '</p>');
+      }
+
+      ///////// RESULTS
+      function initResults() {
+        $.getJSON(`./api/meeting/results/${ID}`, (data) => {
+          data = data.data;
+          console.log(data)
+          $.fn.scheduler.locales['en'] = {
+            AM: 'AM',
+            PM: 'PM',
+            TIME_TITLE: 'time',
+            WEEK_TITLE: 'dates',
+            WEEK_DAYS: data.dates,
+            DRAG_TIP: '',
+            RESET: ''
+          };
+
+          // translate date format into row/column format
+          let selected = {};
+          const names = data.answers.map(x => x.name)
+          $('#available').html('<strong>Users: </strong>' + names.map(i=>`<a href="" class="selUser shown">${i}</a>`).join(' - '))
+          for (const answer of data.answers) {
+            for (const sel of answer.selection) {
+              let dt = luxon.DateTime.fromISO(sel); // relative to user's timezone
+              let test = dt.toFormat('yyyy-MM-dd').toString();
+              let row = data.dates.indexOf(test)
+              if (row >= 0) {
+                let col = (dt.hour + dt.minute / 60)*accuracy;
+                let key = (row+1)+'-'+col;
+                if (!selected[key])
+                  selected[key] = {n:0, names: []};
+                selected[key].n++;
+                if(!selected[key].names.includes(answer.name))
+                  selected[key].names.push(answer.name);
+              } else {
+                console.log(dt.toUTC().toISO() + ': outside range')
+              }
             }
           }
-        }
-        console.log(selected)
-        return {data, selected, names};
+          console.log(selected)
+          showOverlapped({data, selected, names});
+        })
       }
       function showOverlapped(obj) {
+        $(`.wrapper2 .scheduler-hour`).text('')
         const {data, selected, names} = obj;
 
         // only show overlapped regions
@@ -107,11 +187,12 @@
           selected2[arr[0]].push(arr[1])
         }
 
+        $('#status').html('')
         if (! Object.keys(selected2).length) {
           $('#status').html('<p style="color:red;">No overlap possible!</p>')
         }
 
-        $('#test1').scheduler({
+        $('.wrapper2 #test2').scheduler({
           accuracy: accuracy,
           disabled: true,
           data: selected2,
@@ -119,10 +200,18 @@
         console.log(selected2)
 
         $('#tz').html('<p><strong>Timezone:</strong> '+luxon.DateTime.local().zoneName + '</p>');
-      
+        
+        $('.selUser').dblclick(e => {
+          e.preventDefault();
+          $('.selUser').removeClass('shown');
+          shownUser(e)
+        })
         $('.selUser').click(e => {
           e.preventDefault();
-          $(`.scheduler-hour`).text('')
+          shownUser(e)
+        })
+        function shownUser(e) {
+          $(`.wrapper2 .scheduler-hour`).text('')
           $(e.target).toggleClass('shown');
           const sels = []
           for (const shown of $('.selUser.shown')) {
@@ -134,11 +223,12 @@
           for (const s of sel) {
             let R = s.split('-')[0]
             let C = s.split('-')[1]
-            $(`.scheduler-hour[data-row="${R}"][data-col="${C}"]`).text('X')
+            $(`.wrapper2 .scheduler-hour[data-row="${R}"][data-col="${C}"]`).text('X')
           }
-        })
+        }
+          
+        
       }
-
       function intersection() {
         var result = [];
         var lists;
@@ -169,6 +259,7 @@
         }
         return result;
       }
+      initResults()
 
     </script>
   </div>
