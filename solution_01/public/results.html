@@ -35,6 +35,8 @@
 <body>
 
   <div class="main">
+    <a href="./" style="text-decoration: none;">🏠</a>
+
     <div class="wrapper1">
       <h2>Submit:</h2>
       <table id="test1"></table>
@@ -140,6 +142,7 @@
       function initResults() {
         $.getJSON(`./api/meeting/results/${ID}`, (data) => {
           data = data.data;
+          if (!data.answers.length) return $('.wrapper2').hide();
           console.log(data)
           $.fn.scheduler.locales['en'] = {
             AM: 'AM',
@@ -174,12 +177,11 @@
             }
           }
           console.log(selected)
-          showOverlapped({data, selected, names});
+          showOverlapped(data, selected, names);
         })
       }
-      function showOverlapped(obj) {
+      function showOverlapped(data, selected, names) {
         $(`.wrapper2 .scheduler-hour`).text('')
-        const {data, selected, names} = obj;
 
         // only show overlapped regions
         let maxNames = names.length;
