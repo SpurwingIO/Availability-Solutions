@@ -29,20 +29,20 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/js/bootstrap-datepicker.js"></script>
 
-    <input type="text" class="date" placeholder="Pick your dates">
+    <input disabled="true" type="text" class="date" placeholder="Pick your dates">
     <div class="date" data-date=""></div>
     <input type="button" value="create" id="send">
     <br>
     <a href="" target="_blank" id="link_user"></a>
      
     <script>
-
+      $('input.date').val('');
       $('.date').datepicker({
         multidate: true,
         format: 'yyyy-mm-dd',
-        
       });
       $('div.date').on('changeDate', function() {
+        $('input.date').css('background', 'none')
         $('input.date').val(
             $('div.date').datepicker('getFormattedDate')
         );
@@ -50,12 +50,16 @@
 
       $('#send').on('click', e=>{
         e.preventDefault();
+        const dates = $('input.date').val().split(',').filter(i=>i.length>=1);
+        console.log(dates)
+        if (!dates || !dates.length)
+          return $('input.date').css('background', 'red')
         $.ajax({
              url : './api/meeting/',
              type: 'POST',
              contentType: 'application/json',
              dataType: 'json',
-             data : JSON.stringify({ dates: $('.date').val().split(',') })
+             data : JSON.stringify({ dates })
         }).done(function(response) {
             if ('success' in response) {
               console.log(response.ID)
