@@ -14,6 +14,14 @@
       margin: 150px auto;
     }
     tfoot {display:none;}
+    a.selUser {
+      text-decoration: none;
+      color: black;
+    }
+    a.shown {
+      text-decoration: none;
+      color: green;
+    }
   </style>
 </head>
 
@@ -24,7 +32,9 @@
       <table id="test1"></table>
       <br>
       <div id="notes">
-        <p id="available"></p>
+        <div id="available"></div>
+        <div id="status"></div>
+        <div id="tz"></div>
       </div>
     </div>
 
@@ -40,10 +50,11 @@
       const accuracy = 2;
 
       $.getJSON(`./api/meeting/results/${ID}`, data => {
-          init(data.data)
+          showOverlapped(init(data.data))
       })
 
       function init(data) {
+
         console.log(data)
         $.fn.scheduler.locales['en'] = {
           AM: 'AM',
@@ -58,7 +69,7 @@
         // translate date format into row/column format
         let selected = {};
         const names = data.answers.map(x => x.name)
-        $('#available').html('<strong>Users: </strong>' + names.join(', '))
+        $('#available').html('<strong>Users: </strong>' + names.map(i=>`<a href="" class="selUser shown">${i}</a>`).join(' - '))
         for (const answer of data.answers) {
           for (const sel of answer.selection) {
             let dt = luxon.DateTime.fromISO(sel); // relative to user's timezone
@@ -68,19 +79,28 @@
               let col = (dt.hour + dt.minute / 60)*accuracy;
               let key = (row+1)+'-'+col;
               if (!selected[key])
-                selected[key] = 0;
-              selected[key]++;
+                selected[key] = {n:0, names: []};
+              selected[key].n++;
+              if(!selected[key].names.includes(answer.name))
+                selected[key].names.push(answer.name);
             } else {
               console.log(dt.toUTC().toISO() + ': outside range')
             }
           }
         }
         console.log(selected)
+        return {data, selected, names};
+      }
+      function showOverlapped(obj) {
+        const {data, selected, names} = obj;
 
         // only show overlapped regions
-        selected = Object.fromEntries(Object.entries(selected).filter(([x,y]) => y===names.length))
+        let maxNames = names.length;
+        let overlapped = Object.fromEntries(Object.entries(selected).filter(([x,y]) => y.n===maxNames))
+        console.log(overlapped)
+
         const selected2 = {}
-        for (const key in selected) {
+        for (const key in overlapped) {
           const arr = key.split('-').map(x => parseInt(x));
           if (!selected2[arr[0]])
             selected2[arr[0]] = [];
@@ -88,7 +108,7 @@
         }
 
         if (! Object.keys(selected2).length) {
-          $('#notes').append('<p style="color:red;">No overlap possible!</p>')
+          $('#status').html('<p style="color:red;">No overlap possible!</p>')
         }
 
         $('#test1').scheduler({
@@ -96,8 +116,58 @@
           disabled: true,
           data: selected2,
         });
+        console.log(selected2)
 
-        $('#notes').append('<p><strong>Timezone:</strong> '+luxon.DateTime.local().zoneName + '</p>');
+        $('#tz').html('<p><strong>Timezone:</strong> '+luxon.DateTime.local().zoneName + '</p>');
+      
+        $('.selUser').click(e => {
+          e.preventDefault();
+          $(`.scheduler-hour`).text('')
+          $(e.target).toggleClass('shown');
+          const sels = []
+          for (const shown of $('.selUser.shown')) {
+            const target = $(shown).text();
+            const sel = Object.entries(selected).map(([x,y]) => [x, y.names.find(i=>i===target)]).filter(i=>i[1]).map(i=>i[0]);
+            sels.push(sel)
+          }
+          const sel = intersection(sels);
+          for (const s of sel) {
+            let R = s.split('-')[0]
+            let C = s.split('-')[1]
+            $(`.scheduler-hour[data-row="${R}"][data-col="${C}"]`).text('X')
+          }
+        })
+      }
+
+      function intersection() {
+        var result = [];
+        var lists;
+
+        if(arguments.length === 1) {
+          lists = arguments[0];
+        } else {
+          lists = arguments;
+        }
+
+        for(var i = 0; i < lists.length; i++) {
+          var currentList = lists[i];
+          for(var y = 0; y < currentList.length; y++) {
+              var currentValue = currentList[y];
+            if(result.indexOf(currentValue) === -1) {
+              var existsInAll = true;
+              for(var x = 0; x < lists.length; x++) {
+                if(lists[x].indexOf(currentValue) === -1) {
+                  existsInAll = false;
+                  break;
+                }
+              }
+              if(existsInAll) {
+                result.push(currentValue);
+              }
+            }
+          }
+        }
+        return result;
       }
 
     </script>
