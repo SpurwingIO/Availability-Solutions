@@ -5,19 +5,17 @@ This software is inspired by online tools like Doodle, which allow us to share a
 
 ## Demo
 
-Live demo: [https://nevolin.be/Spurwing/Availability/S01/](https://nevolin.be/Spurwing/Availability/S01/)
+Live demo: [https://cloud.spurwing.io/Availability/S01/](https://cloud.spurwing.io/Availability/S01/)
 
-Use the homepage's calendar to select a few candidate dates. Upon submitting you will see two links appear, one for the results page and one to share with your team or group for voting.
+Use the homepage's calendar to select a few candidate dates. Upon submitting you will see an URL appear, share this link with the participants.
 
 ![group calendar tool](assets/a.png)
 
-On the voting link each user can click the cells to indicate their availability for a given date and time. A name and email address must be provided in order to submit the answer. Updating an already submitted answer is possible by re-submitting using the same email.
+On the new link each user can select the cells to indicate their availability for a given date and time. A name and email address must be provided in order to submit the answer. Updating an already submitted answer is possible by re-submitting using the same email.
 
 ![group calendar tool](assets/b.png)
 
-The results page shows the strict overlap of all the answers, of each submitted user.
-
-![group calendar tool](assets/c.png)
+The results sections shows the strict overlap of all the answers, of each submitted user. But also allows you to toggle individual members to see the overlap or intersection.
 
 Notice that all submissions and views are timezone relative. This means that we can easily schedule and book meetings with members from different timezones on the fly. Each user's timezone is taken into account and translated into a universal UTC timestamp. The final results page shows all submissions relative to the viewer's timezone.
 
