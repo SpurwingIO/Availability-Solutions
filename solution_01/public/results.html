@@ -11,16 +11,20 @@
     body { background: #fafafa; font-family: 'Open Sans'; }
     .main {
       max-width: 800px;
-      margin: 150px auto;
+      margin: 20px auto;
     }
     tfoot {display:none;}
     a.selUser {
       text-decoration: none;
+      background: none;
       color: black;
+      border: 1px solid grey;
+      padding: 3px;
     }
     a.shown {
       text-decoration: none;
-      color: green;
+      background: green;
+      color: white;
     }
   </style>
 </head>
@@ -147,7 +151,7 @@
           // translate date format into row/column format
           let selected = {};
           const names = data.answers.map(x => x.name)
-          $('#available').html('<strong>Users: </strong>' + names.map(i=>`<a href="" class="selUser shown">${i}</a>`).join(' - '))
+          $('#available').html('<strong>Users: </strong>' + names.map(i=>`<a href="" class="selUser shown">${i}</a>`).join(' '))
           for (const answer of data.answers) {
             for (const sel of answer.selection) {
               let dt = luxon.DateTime.fromISO(sel); // relative to user's timezone
@@ -211,7 +215,7 @@
           shownUser(e)
         })
         function shownUser(e) {
-          $(`.wrapper2 .scheduler-hour`).text('')
+          $(`.wrapper2 .scheduler-hour`).removeClass('scheduler-active')
           $(e.target).toggleClass('shown');
           const sels = []
           for (const shown of $('.selUser.shown')) {
@@ -223,7 +227,7 @@
           for (const s of sel) {
             let R = s.split('-')[0]
             let C = s.split('-')[1]
-            $(`.wrapper2 .scheduler-hour[data-row="${R}"][data-col="${C}"]`).text('X')
+            $(`.wrapper2 .scheduler-hour[data-row="${R}"][data-col="${C}"]`).toggleClass('scheduler-active')
           }
         }
           
