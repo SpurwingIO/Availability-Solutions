@@ -1,7 +1,7 @@
 # Scheduling Tool for Teams Across Different Time Zones
 This project is an implementation of a group scheduling tool and booking tool for teams.
 
-This software is inspired by online tools like Doodle, which allow us to share a link where team members can indicate their availability. The results can be monitored in real-time and show all overlapping dates and times where all users can attend.
+This software is inspired by online tools like Doodle, which allow us to share a link where team members can indicate their availability. The results can be monitored in real-time and show all overlapping dates and times where all users can attend. 
 
 ## Demo
 
@@ -35,3 +35,4 @@ Hint: use `nodemon` to make the app restart automatically on changes.
 - For public issues and bugs please use the GitHub Issues Page.
 - For enquiries and private issues reach out to us at support@spurwing.io
 - Join our Discord Community Server: https://discord.gg/j3gd5Qk5uW
+- Learn more about the [Spurwing Scheduling API](https://github.com/Spurwing/Appointment-Scheduling-API).
